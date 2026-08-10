@@ -18,11 +18,11 @@ WORKDIR /app
 COPY --from=builder /install /usr/local
 COPY . .
 
-RUN useradd -m appuser && chown -R appuser:appuser /app
+RUN chmod -R 755 /usr/local && useradd -m appuser && chown -R appuser:appuser /app
 USER appuser
 
 HEALTHCHECK --interval=10s --timeout=3s --retries=5 \
-  CMD python -c "import urllib.request, os; port=os.environ.get('PORT', '8000'); urllib.request.urlopen(f'http://localhost:{port}/health')" || exit 1
+  CMD python -c "import urllib.request, os; port=os.environ.get('PORT', '8000'); urllib.request.urlopen(f'http://127.0.0.1:{port}/health')" || exit 1
 
 EXPOSE 8000
 
