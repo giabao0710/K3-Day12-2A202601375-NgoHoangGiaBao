@@ -26,7 +26,7 @@ jobs:
 
       - name: Run Pytest
         env:
-          AGENT_API_KEY: "CP0_Secret_Key_v8x9a2k3m4p5q6r7s8t9u0v1w2x3y4z5"
+          AGENT_API_KEY: ${{ secrets.AGENT_API_KEY }}
         run: |
           pytest tests/ --ignore=tests/test_cp5.py -v
 
