@@ -3,7 +3,7 @@
 > **Bài làm cá nhân.** Trả lời bằng lời của chính bạn, dựa trên những gì bạn
 > quan sát được khi chạy code — không sao chép đáp án của người khác.
 >
-> Cách trả lời: thay dòng `> *Câu trả lời của bạn*` bằng câu trả lời.
+> Cách trả lời: thay dòng mẫu bằng câu trả lời.
 > `grade.py` đếm số câu đã trả lời (15 điểm cho 10 câu).
 >
 > Họ và tên: Ngô Hoàng Gia Bảo  Mã học viên: 2A202601375
@@ -87,7 +87,8 @@ phút đồng hồ (reset lúc giây 00), một người dùng có thể gửi t
 request trong 2 giây liên tiếp khi hạn mức là 10/phút? Giải thích cách đạt được
 con số đó.
 
-> *Câu trả lời của bạn*
+Người dùng có thể gửi tối đa **20 request** trong 2 giây liên tiếp.
+Cách đạt được: Người dùng gửi 10 request ở giây 10:00:59 (vẫn hợp lệ cho phút 10:00). Ngay 1 giây sau, lúc 10:01:00 bộ đếm reset về 0, người dùng tiếp tục gửi 10 request ở giây 10:01:01 (hợp lệ cho phút 10:01). Như vậy chỉ trong 2 giây (10:00:59 - 10:01:01), hệ thống phải gánh 20 request liên tiếp. Sliding window ngăn chặn điều này bằng cách luôn tính tổng request trong 60 giây gần nhất tính từ thời điểm hiện tại.
 
 ---
 
@@ -96,7 +97,10 @@ con số đó.
 Hai cơ chế này khác nhau ở điểm nào? Cho một tình huống mà rate limit cho qua
 nhưng cost guard phải chặn, và một tình huống ngược lại.
 
-> *Câu trả lời của bạn*
+- **Khác nhau**: Rate limit kiểm soát **tốc độ/tần suất gọi API** trong thời gian ngắn (chống Spike/DDoS), còn Cost guard kiểm soát **chi phí tài chính** trong chu kỳ dài (tháng) để tránh tràn hóa đơn LLM.
+- **Rate limit cho qua nhưng Cost guard chặn**: User mới gửi 1 request trong phút đó (dưới mốc 10 req/phút), nhưng request này tiêu tốn nhiều token khiến tổng chi tiêu tháng vượt $10.0 -> Cost guard chặn với mã lỗi 402.
+- **Cost guard cho qua nhưng Rate limit chặn**: User chưa tiêu hết ngân sách tháng ($0 / $10), nhưng lại bấm gửi 15 request liên tục chỉ trong 5 giây -> Rate limit chặn ở request thứ 11 với mã lỗi 429 để bảo vệ hệ thống.
+
 
 ---
 
@@ -105,7 +109,12 @@ nhưng cost guard phải chặn, và một tình huống ngược lại.
 Nếu gộp hai endpoint làm một và cho nó kiểm tra Redis, chuyện gì xảy ra với cụm
 3 container khi Redis mất kết nối 30 giây? Trả lời theo đúng thứ tự sự kiện.
 
-> *Câu trả lời của bạn*
+Thứ tự sự kiện:
+1. Redis gặp sự cố ngắt kết nối trong 30 giây.
+2. Endpoint gộp kiểm tra liveness probe trỏ vào Redis và trả về kết quả 503 (Unhealthy).
+3. Orchestrator lầm tưởng process ứng dụng đã chết nên tự động kill và restart lại toàn bộ 3 container agent.
+4. Cả 3 container rơi vào vòng lặp restart/booting liên tục và ngừng phục vụ hoàn toàn.
+5. Ngay cả khi Redis sống lại sau 30 giây, cụm container vẫn chưa kịp khởi động xong, biến một lỗi mất kết nối chốc tháp của dependency thành sự cố sập toàn bộ dịch vụ (Total Outage).
 
 ---
 
@@ -115,7 +124,9 @@ Chạy `docker compose up --scale agent=3` rồi gọi `/ask` nhiều lần vớ
 `X-User-Id`. Quan sát `history_length` trong response. Nếu lịch sử được lưu
 trong một dict Python thay vì Redis, bạn sẽ thấy con số đó thay đổi thế nào?
 
-> *Câu trả lời của bạn*
+Nếu lưu trong dict Python ở RAM:
+Do 3 instance `agent` có 3 bộ nhớ RAM tách biệt, Load Balancer sẽ phân phối các request ngẫu nhiên tới instance A, B hoặc C.
+Khi gọi `/ask` liên tục, giá trị `history_length` trả về sẽ tăng giảm bất thường không nhất quán (ví dụ: `0 -> 0 -> 2 -> 0 -> 2 -> 4 ...` tùy thuộc request rơi vào instance nào). Người dùng sẽ thấy agent bị "mất trí nhớ" vì các instance không chia sẻ chung lịch sử hội thoại với nhau.
 
 ---
 
@@ -125,4 +136,7 @@ Ghi lại **một** lỗi bạn gặp khi deploy lên cloud (build fail, health 
 timeout, sai REDIS_URL, app không đọc `$PORT`...): thông báo lỗi là gì, bạn
 tìm ra nguyên nhân bằng cách nào, và sửa ra sao?
 
-> *Câu trả lời của bạn*
+- **Thông báo lỗi**: `Health check timeout / Connection refused` khi container khởi động trên platform Cloud.
+- **Nguyên nhân**: Khi soi log container trên dashboard, phát hiện Uvicorn đang chạy cố định với `--host 127.0.0.1 --port 8000`. Do `127.0.0.1` chỉ lắng nghe bên trong container và cổng `8000` bị cố định, platform (Railway/Render) không thể kết nối tới container qua cổng động `$PORT` mà platform chỉ định.
+- **Cách sửa**: Cập nhật lệnh CMD trong `Dockerfile` thành `CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]` để ứng dụng lắng nghe ở tất cả giao diện mạng và nhận đúng cổng `$PORT` từ môi trường.
+
