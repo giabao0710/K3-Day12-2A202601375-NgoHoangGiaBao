@@ -15,7 +15,7 @@ gọi được, có bảo mật, có giới hạn chi phí, và không sập khi
 | Được phép | Không được phép |
 |-----------|-----------------|
 | Đọc tài liệu, Stack Overflow, tra AI để hiểu khái niệm | Sao chép code của học viên khác |
-| Hỏi Lab Coach khi bị kẹt | Dùng chung repo, chung commit history |
+| Hỏi Lab Coach khi bị kẹt | Dùng chung repo, chung commit histories |
 | Thảo luận **cách tiếp cận** với bạn cùng lớp | Nhờ người khác làm hộ, kể cả một phần |
 | Dùng AI để giải thích lỗi | Nộp code mà bạn không giải thích được |
 
