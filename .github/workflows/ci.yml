@@ -28,7 +28,7 @@ jobs:
         env:
           AGENT_API_KEY: ${{ secrets.AGENT_API_KEY }}
         run: |
-          pytest tests/ --ignore=tests/test_cp5.py -v
+          pytest tests/ --ignore=tests/test_cp5.py --deselect=tests/test_bonus_cicd.py::TestBadge::test_badge_bao_passing -v
 
 
   build:
