@@ -12,13 +12,13 @@
 |-----|----------|
 | Họ và tên | Ngô Hoàng Gia Bảo |
 | Mã học viên | 2A202601375 |
-| Repo | https://github.com/NgoHoangGiaBao/K3-Day12-2A202601375-NgoHoangGiaBao |
+| Repo | https://github.com/giabao0710/K3-Day12-2A202601375-NgoHoangGiaBao |
 
 ## Service
 
 | Mục | Nội dung |
 |-----|----------|
-| Public URL | https://day12-agent-production.up.railway.app |
+| Public URL | https://k3-day12-2a202601375-ngohoanggiabao-production.up.railway.app |
 | Platform | Railway |
 | Ngày deploy | 2026-08-10 |
 
@@ -41,18 +41,18 @@ Thay `<URL>` bằng Public URL ở trên:
 
 ```bash
 # 1. Liveness — mong đợi 200 {"status":"ok"}
-curl -i https://day12-agent-production.up.railway.app/health
+curl -i https://k3-day12-2a202601375-ngohoanggiabao-production.up.railway.app/health
 
 # 2. Readiness — mong đợi 200 {"status":"ready"} (đã nối được Redis)
-curl -i https://day12-agent-production.up.railway.app/ready
+curl -i https://k3-day12-2a202601375-ngohoanggiabao-production.up.railway.app/ready
 
 # 3. Không có API key — mong đợi 401
-curl -i -X POST https://day12-agent-production.up.railway.app/ask \
+curl -i -X POST https://k3-day12-2a202601375-ngohoanggiabao-production.up.railway.app/ask \
   -H "Content-Type: application/json" \
   -d '{"question":"Hello"}'
 
 # 4. Có API key — mong đợi 200 kèm câu trả lời
-curl -i -X POST https://day12-agent-production.up.railway.app/ask \
+curl -i -X POST https://k3-day12-2a202601375-ngohoanggiabao-production.up.railway.app/ask \
   -H "Content-Type: application/json" \
   -H "X-API-Key: $AGENT_API_KEY" \
   -H "X-User-Id: sv-test" \
@@ -60,7 +60,7 @@ curl -i -X POST https://day12-agent-production.up.railway.app/ask \
 
 # 5. Rate limit — gọi 15 lần, những lần cuối phải trả 429
 for i in $(seq 1 15); do
-  curl -s -o /dev/null -w "%{http_code} " -X POST https://day12-agent-production.up.railway.app/ask \
+  curl -s -o /dev/null -w "%{http_code} " -X POST https://k3-day12-2a202601375-ngohoanggiabao-production.up.railway.app/ask \
     -H "Content-Type: application/json" \
     -H "X-API-Key: $AGENT_API_KEY" \
     -H "X-User-Id: sv-test" \
@@ -94,15 +94,3 @@ HTTP/1.1 200 OK
 
 - `screenshots/dashboard.png` — trang quản lý service trên platform
 - `screenshots/health.png` — kết quả gọi `/health` từ trình duyệt hoặc curl
-
----
-
-## Nếu Dùng Phương Án Dự Phòng
-
-Không đăng ký được tài khoản cloud? Vẫn nộp được bài, nhưng CP5 tối đa 60% điểm:
-
-1. Đặt `LOCAL_FALLBACK=true` trong `.env`
-2. Chạy `docker compose up -d` rồi kiểm tra `docker compose ps`
-3. Chụp màn hình vào `screenshots/`
-4. Chạy `pytest tests/test_cp5.py -v` — bộ test sẽ tự chuyển sang kiểm tra
-   `http://localhost:8000`
